@@ -57,7 +57,26 @@ class Sensors {
   async addSensorData(info) {
     const sensorData = validate('addSensorData', info);
     //@TODO
-    this.sensorDataMap.push(sensorData)
+    let flag = true 
+     if(this.sensorDataMap.length!=0)
+    {  
+      flag = true
+      for(let i = 0; i < this.sensorDataMap.length; i++)
+      {
+        if(this.sensorDataMap[i].sensorId === sensorData.sensorId)
+        {
+          if(this.sensorDataMap[i].timestamp === sensorData.timestamp)
+          {
+            flag = false
+            this.sensorDataMap[i].value = sensorData.value
+          }
+        }
+      }
+    }
+    if(flag)
+    {
+      this.sensorDataMap.push(sensorData)
+    }
   }
 
   /** Subject to validation of search-parameters in info as per
@@ -92,9 +111,7 @@ class Sensors {
     let count_default = 0
     let arrError = new Array()
     keysMap.sort()
-    /*
-    * Default condition : find sensor-type
-    */
+   
     if(keys[0] === "index" || keys[0] === undefined)
     {  
       for(let i = searchSpecs.index; i<(searchSpecs.index+searchSpecs.count); i++)
@@ -103,31 +120,18 @@ class Sensors {
           nextIndex++;
       }
     }
-    else if(keys[0] === "id" || keys[0] === "sensorId" )  //Check condition if ID not found
+    else if(keys[0] === "id" )  //Check condition if ID not found
     {
       if(this.sensorTypeMap[info.id] === null || this.sensorTypeMap[info.id] === undefined)
       {
-        return ["unknown sensor id" + info.id ]
+        throw(`cannot find sensor for id "${info.id}"`)
       }
        arr.push(this.sensorTypeMap[info.id])
     }
 
     else if(keys[0] === "quantity")
     {
-      if(keys.length===1)
-      {
-        for(let i = 0; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].quantity === info.quantity && searchSpecs.count){
-            arr.push(this.sensorTypeMap[keysMap[i]])
-            searchSpecs.count--
-          }
-          nextIndex++
-        }
-      }
-      else
-      {
-        for(let i = searchSpecs.index; i<keysMap.length; i++)
+      for(let i = searchSpecs.index; i<keysMap.length; i++)
         {
           if(this.sensorTypeMap[keysMap[i]].quantity === info.quantity && searchSpecs.count){
             arr.push(this.sensorTypeMap[keysMap[i]])
@@ -135,84 +139,41 @@ class Sensors {
           }
           nextIndex++;
         }
-      }
     }
     
     else if(keys[0] === "manufacturer")
     {
-      if(keys.length===1)
+      for(let i = searchSpecs.index; i<keysMap.length; i++)
       {
-        for(let i = 0; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].manufacturer === info.manufacturer && searchSpecs.count){
-            arr.push(this.sensorTypeMap[keysMap[i]])
-            searchSpecs.count--
-          }
-          nextIndex++
-        }
-      }
-      else
-      {
-        for(let i = searchSpecs.index; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].manufacturer === info.manufacturer && searchSpecs.count){
+        if(this.sensorTypeMap[keysMap[i]].manufacturer === info.manufacturer && searchSpecs.count){
             arr.push(this.sensorTypeMap[keysMap[i]])
             searchSpecs.count--
           }
           nextIndex++;
-        }
       }
     }
     
     else if(keys[0] === "modelNumber")
     {
-      if(keys.length===1)
+      for(let i = searchSpecs.index; i<keysMap.length; i++)
       {
-        for(let i = 0; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].modelNumber === info.modelNumber && searchSpecs.count){
-            arr.push(this.sensorTypeMap[keysMap[i]])
-            searchSpecs.count--
-          }
-          nextIndex++
-        }
-      }
-      else
-      {
-        for(let i = searchSpecs.index; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].modelNumber === info.modelNumber && searchSpecs.count){
+        if(this.sensorTypeMap[keysMap[i]].modelNumber === info.modelNumber && searchSpecs.count){
             arr.push(this.sensorTypeMap[keysMap[i]])
             searchSpecs.count--
           }
           nextIndex++;
         }
-      }
     }
 
     else if(keys[0] === "unit")
     {
-      if(keys.length===1)
+      for(let i = searchSpecs.index; i<keysMap.length; i++)
       {
-        for(let i = 0; i<keysMap.length; i++)
-        {
-          if(this.sensorTypeMap[keysMap[i]].unit === info.unit && searchSpecs.count){
-            arr.push(this.sensorTypeMap[keysMap[i]])
-            searchSpecs.count--
-          }
-          nextIndex++
-        }
-      }
-      else
-      {
-        for(let i = searchSpecs.index; i<keysMap.length; i++)
-        {
           if(this.sensorTypeMap[keysMap[i]].manufacturer === info.manufacturer && searchSpecs.count){
             arr.push(this.sensorTypeMap[keysMap[i]])
             searchSpecs.count--
           }
           nextIndex++;
-        }
       }
     }
 
@@ -278,7 +239,7 @@ class Sensors {
     {
       if(this.sensorTypeMap[info.id] === null || this.sensorTypeMap[info.id] === undefined)
       {
-        return ["cannot find sensor for id " + info.id ]
+        throw(`cannot find sensor for id "${info.id}"`)
       }
       arr.push(this.sensorMap[info.id])
     }
@@ -353,7 +314,7 @@ class Sensors {
       }  
       return {"nextIndex": nextIndex,"data": arr}  
     }
-    return {Error :["cannot find sensor for  "+ keys[0] +" "+info.keys[0]]};
+    return {};
   }
   
   /** Subject to validation of search-parameters in info as per
@@ -403,9 +364,12 @@ class Sensors {
     this.sensorDataMap.sort()
     let r = []
     
-    if(keys[0] === "index" || keys[0] === undefined) { return ["missing value for sensorId"] }  
+    if(keys[0] === "index" || keys[0] === undefined) { throw(`missing value for sensorId`) }  
     if(searchSpecs.timestamp < 0) {return {"data": []}} 
-
+    if(this.sensorMap[info.sensorId] === null || this.sensorMap[info.sensorId] === undefined)
+    {
+      throw(`unknown sensor id "${info.sensorId}"`)
+    }
     else if(keys[0] === "sensorId")
     {
       let itr = searchSpecs.statuses;
@@ -465,7 +429,7 @@ class Sensors {
       return {"data": arr}  
     }
 
-    return {};
+    return  {};
   }
   
   
