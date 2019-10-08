@@ -95,7 +95,7 @@ class Sensors {
    */
   async addSensor(info) {
     const sensor = validate('addSensor', info);
-   // console.log(sensor);
+
     /**
      *  Collection name 
      */
@@ -131,7 +131,31 @@ class Sensors {
    */
   async addSensorData(info) {
     const sensorData = validate('addSensorData', info);
-    //@TODO
+
+    /**
+     *  Collection name 
+     */
+    const collectionName = "SensorData";
+
+    try {
+      
+      /**
+       *  Check if sensordata already exist with same timestamp and sensorID
+       *  if yes, delete the old data and insert the new data
+       *  else add new data 
+       */
+      if( !(await this.db.collection(collectionName).findOne({"sensorId": sensorData.sensorId, "timestamp": sensorData.timestamp})) ){
+        await this.db.collection(collectionName).insertOne(sensorData);
+      }
+      else{
+        await this.db.collection(collectionName).deleteOne({"sensorId": sensorData.sensorId, "timestamp": sensorData.timestamp});
+        await this.db.collection(collectionName).insertOne(sensorData);
+      }
+
+    }catch(error){
+      console.log(error)
+    }
+    
   }
 
   /** Subject to validation of search-parameters in info as per
