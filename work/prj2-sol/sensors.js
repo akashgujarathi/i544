@@ -8,26 +8,41 @@ const mongo = require('mongodb').MongoClient;
 
 class Sensors {
 
-
+  constructor(client, db){
+    this.client = client;
+    this.db =db;
+  }
+  
   /** Return a new instance of this class with database as
    *  per mongoDbUrl.  Note that mongoDbUrl is expected to
    *  be of the form mongodb://HOST:PORT/DB.
    */
   static async newSensors(mongoDbUrl) {
-    //@TODO
-    return new Sensors();    
+
+    let parameter = mongoDbUrl.toString();
+    let url = parameter.substring(0, parameter.lastIndexOf("/"));
+    let dbName = mongoDbUrl.toString().split('/').pop();
+    let client; 
+    let db;
+    try {
+      client = await mongo.connect(url, MONGO_OPTIONS);
+      db = client.db(dbName);    
+    } catch (error) {
+      console.log(error);
+    }
+    return new Sensors(client,db);
   }
 
   /** Release all resources held by this Sensors instance.
    *  Specifically, close any database connections.
    */
   async close() {
-    //@TODO
+    await this.client.close();
   }
 
   /** Clear database */
   async clear() {
-    //@TODO
+    await this.db.dropDatabase();
   }
 
   /** Subject to field validation as per validate('addSensorType',
@@ -39,6 +54,7 @@ class Sensors {
   async addSensorType(info) {
     const sensorType = validate('addSensorType', info);
     //@TODO
+    
   }
   
   /** Subject to field validation as per validate('addSensor', info)
