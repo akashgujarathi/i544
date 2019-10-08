@@ -18,12 +18,20 @@ class Sensors {
    *  be of the form mongodb://HOST:PORT/DB.
    */
   static async newSensors(mongoDbUrl) {
-
+   
+    /*
+     *  Following code is to 
+     *  seperate url and database name from mongoDbUrl
+     *  url = mongodb://HOST:PORT
+     *  dbName = DB
+     */ 
+    
     let parameter = mongoDbUrl.toString();
     let url = parameter.substring(0, parameter.lastIndexOf("/"));
     let dbName = mongoDbUrl.toString().split('/').pop();
     let client; 
     let db;
+    
     try {
       client = await mongo.connect(url, MONGO_OPTIONS);
       db = client.db(dbName);    
@@ -53,8 +61,29 @@ class Sensors {
    */
   async addSensorType(info) {
     const sensorType = validate('addSensorType', info);
-    //@TODO
-    
+    /**
+     *  Collection name 
+     */
+    const collectionName = "SensorType";
+
+    try {
+      
+      /**
+       *  Check if sensorType already exist
+       *  if yes, delete the old data and insert the new data
+       *  else add new data 
+       */
+
+      if( !(await this.db.collection(collectionName).findOne({"id": sensorType.id})) ){
+        await this.db.collection(collectionName).insertOne(sensorType);
+      }
+      else{
+        await this.db.collection(collectionName).deleteOne({"id": sensorType.id});
+        await this.db.collection(collectionName).insertOne(sensorType);
+      } 
+    } catch (error) {
+      console.log(error);
+    }
   }
   
   /** Subject to field validation as per validate('addSensor', info)
@@ -66,7 +95,30 @@ class Sensors {
    */
   async addSensor(info) {
     const sensor = validate('addSensor', info);
-    //@TODO
+   // console.log(sensor);
+    /**
+     *  Collection name 
+     */
+    const collectionName = "Sensor";
+
+    try {
+      
+      /**
+       *  Check if sensor already exist
+       *  if yes, delete the old data and insert the new data
+       *  else add new data 
+       */
+      if( !(await this.db.collection(collectionName).findOne({"id": sensor.id})) ){
+        await this.db.collection(collectionName).insertOne(sensor);
+      }
+      else{
+        await this.db.collection(collectionName).deleteOne({"id": sensor.id});
+        await this.db.collection(collectionName).insertOne(sensor);
+      }
+
+    }catch(error){
+      console.log(error)
+    }
   }
 
   /** Subject to field validation as per validate('addSensorData',

@@ -898,14 +898,5 @@
       "min": "20",
       "max": "186"
     }
-  },
-  {
-    "id": "24sg",
-    "model": "agag-f26x",
-    "period": "98",
-    "expected": {
-      "min": "20",
-      "max": "186"
-    }
   }
 ]
