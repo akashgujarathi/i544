@@ -181,9 +181,33 @@ class Sensors {
    *  All user errors must be thrown as an array of AppError's.
    */
   async findSensorTypes(info) {
-    //@TODO
+    //@TODO index
     const searchSpecs = validate('findSensorTypes', info);
-    return { data: [], nextIndex: -1 };
+    /**
+     *  Assigning collection name   
+     */
+    const collectionName = "SensorType";
+
+    /**
+     *  Remove index and count from object info 
+     *  so as to directly use info to find in database
+     *  store the value of index and count     
+     */
+    let index;
+    let count;
+    if(info._index != undefined){
+      index = info._index;
+      delete info._index;
+    }
+    if(info._count != undefined){
+      count = info._count;
+      delete info._count;
+    }
+    
+    const sortAscending = {"id": 1};
+    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).skip(searchSpecs._index).limit(searchSpecs._count).toArray();
+    
+    return { data: rArray, nextIndex: -1 }
   }
   
   /** Subject to validation of search-parameters in info as per
@@ -212,9 +236,29 @@ class Sensors {
    *  All user errors must be thrown as an array of AppError's.
    */
   async findSensors(info) {
-    //@TODO
+    //@TODO index 
     const searchSpecs = validate('findSensors', info);
-    return { data: [], nextIndex: -1 };
+
+    /**
+     *  Assigning collection name   
+     */
+    const collectionName = "Sensor";
+
+    let index;
+    let count;
+    if(info._index != undefined){
+      index = info._index;
+      delete info._index;
+    }
+    if(info._count != undefined){
+      count = info._count;
+      delete info._count;
+    }
+    
+    const sortAscending = {"id": 1};
+    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).skip(searchSpecs._index).limit(searchSpecs._count).toArray();
+    
+    return { data: rArray, nextIndex: -1 };
   }
   
   /** Subject to validation of search-parameters in info as per
