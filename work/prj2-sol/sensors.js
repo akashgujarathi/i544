@@ -195,19 +195,52 @@ class Sensors {
      */
     let index;
     let count;
-    if(info._index != undefined){
+    if(info._index !== undefined){
       index = info._index;
       delete info._index;
     }
-    if(info._count != undefined){
+    if(info._count !== undefined){
       count = info._count;
       delete info._count;
     }
     
+    /**
+     * Code to get required document from mongoDB
+     */
     const sortAscending = {"id": 1};
-    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).skip(searchSpecs._index).limit(searchSpecs._count).toArray();
-    
-    return { data: rArray, nextIndex: -1 }
+    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).toArray()
+    if(rArray.length == 0){
+      let x  = Object.keys(info)
+      let y = info[x]
+      const err = `${x} : ${y} not found`;
+      throw [new AppError('X_ID', err)];
+    }
+    let tSize = await this.db.collection(collectionName).countDocuments();
+    let tArray = [];
+    let nI = searchSpecs._index;
+
+    for(let i = searchSpecs._index; i < tSize; i++){
+      if(searchSpecs._count)
+      {
+        if(rArray[i])
+        {
+          tArray.push(rArray[i]);
+          searchSpecs._count--;
+        }
+      }else{
+        break;
+      }
+      nI++;
+    }
+    tArray.filter(x => delete x._id);
+    /**
+     * Code to get the next index
+     */
+    if(nI > (tSize-1)){
+      nI = - (nI%(tSize-1))
+    }
+  
+    return { data: tArray, nextIndex: nI }
   }
   
   /** Subject to validation of search-parameters in info as per
@@ -238,27 +271,63 @@ class Sensors {
   async findSensors(info) {
     //@TODO index 
     const searchSpecs = validate('findSensors', info);
-
     /**
      *  Assigning collection name   
      */
     const collectionName = "Sensor";
-
+    /**
+     *  Remove index and count from object info 
+     *  so as to directly use info to find in database
+     *  store the value of index and count     
+     */
     let index;
     let count;
-    if(info._index != undefined){
+    if(info._index !== undefined){
       index = info._index;
       delete info._index;
     }
-    if(info._count != undefined){
+    if(info._count !== undefined){
       count = info._count;
       delete info._count;
     }
-    
+    /**
+     *  Sort in ascending order of ID 
+     */
     const sortAscending = {"id": 1};
-    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).skip(searchSpecs._index).limit(searchSpecs._count).toArray();
+    let rArray = await this.db.collection(collectionName).find(info).sort(sortAscending).toArray()
     
-    return { data: rArray, nextIndex: -1 };
+
+    let tSize = await this.db.collection(collectionName).countDocuments();
+    let tArray = [];
+    let nI = searchSpecs._index;
+    /**
+     *  Search data from mongo until count 
+     */
+    for(let i = searchSpecs._index; i < tSize; i++){
+      if(searchSpecs._count)
+      {
+        if(rArray[i])
+        {
+          tArray.push(rArray[i]);
+          searchSpecs._count--;
+        }
+      }else{
+        break;
+      }
+      nI++;
+    }
+    /*
+    *   Filter out default mongo ID 
+    */
+    tArray.filter(x => delete x._id);
+    /**
+     * Code to get the next index
+     */
+    if(nI > (tSize-1)){
+      nI = - (nI%(tSize-1))
+    }
+
+    return { data: tArray, nextIndex: nI };
   }
   
   /** Subject to validation of search-parameters in info as per
@@ -298,14 +367,111 @@ class Sensors {
    *
    *  All user errors must be thrown as an array of AppError's.
    */
+  
   async findSensorData(info) {
     //@TODO
     const searchSpecs = validate('findSensorData', info);
-    return { data: [], };
-  }
+    /**
+     *  Assigning collection name   
+     */
+    const collectionName = "SensorData";
+    /**
+     *  Remove statuses and count from object info 
+     *  so as to directly use info to find in database
+     *  store the value of index and count     
+     */
+    
+    if(info.statuses !== undefined){
+      delete info.statuses;
+    }
+    if(info._count !== undefined){
+      delete info._count;
+    }
+    if(info._doDetail !== undefined){
+      delete info._doDetail;
+    }
+    if(info.timestamp !== undefined){
+      delete info.timestamp
+    }   
+    /**
+     *  Sort in decending order of timestamp 
+     */
+    let sortDecending  = {"timestamp": -1}
+    /**
+     *  Search data from mongo until count 
+     */
+    let rArray = await this.db.collection(collectionName).find(info).sort(sortDecending).toArray();
+    if(rArray.length === 0){
+      let x  = Object.keys(info)
+      let y = info[x]
+      const err = `${x} : ${y} not found`;
+      throw [new AppError('X_ID', err)];
+    }
+    /*
+    *   Filter out default mongo ID 
+    */
+    rArray.filter(x=> delete x._id);
+    /**
+     *  Get data from SensorType and Sensors for statuses 
+     */
+    let forSensor = await this.db.collection("Sensor").find({"id":info.sensorId}).toArray();
+    let sensorMin = forSensor[0].expected.min;
+    let sensorMax = forSensor[0].expected.max;
+    let getModel = forSensor[0].model;
+    let forSensorType = await this.db.collection("SensorType").find({"id": getModel}).toArray();
+    let sensorTypeMin = forSensorType[0].limits.min;
+    let sensorTypeMax = forSensorType[0].limits.max;
+    
+    let itr = searchSpecs.statuses;
+    let a = itr.values();
+    let b = a.next().value;
+    let c = a.next().value;
+    let d = a.next().value;
+   /**
+    *   Add statuses to each document 
+    */
+    for(const x of rArray){ 
+      if((sensorTypeMin > x.value) || ( x.value >  sensorTypeMax) ){
+        x.status = "error"
+      }
+      else if(( (sensorMin > x.value) || (sensorMax < x.value) )){
+        x.status = "outOfRange"
+      }
+      else{
+        x.status = "ok"
+      }
+    }
+    /**
+     *  Filter data according to statues given in the specification
+     */
+    let tArray = [];
+    for(const x of rArray){
+      if( (x.status === b ) || (x.status === c ) || (x.status === d)){
+        if(x.timestamp <= searchSpecs.timestamp){
+          tArray.push(x);
 
-  
-  
+        }
+      }
+    }
+    /**
+     *  Slice array acc to the count
+     */
+
+    tArray = tArray.slice(0,searchSpecs._count);
+    tArray.filter(x => delete x.sensorId)
+    /**
+     * If _doDetails is true add sensorType and Sensor
+     */
+    if(searchSpecs._doDetail){
+      forSensorType.filter(x => delete x._id);
+      forSensor.filter(x => delete x._id);  
+        return {"data": tArray,
+        "sensorType":forSensorType[0], "sensor":forSensor[0]
+      }
+    }
+
+    return { data: tArray, };
+  } 
 } //class Sensors
 
 module.exports = Sensors.newSensors;
@@ -320,3 +486,4 @@ const MONGO_OPTIONS = {
 function inRange(value, range) {
   return Number(range.min) <= value && value <= Number(range.max);
 }
+
