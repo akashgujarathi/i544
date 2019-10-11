@@ -1,0 +1,8 @@
+Name:		Akash Gujarathi
+B-Number:	B00765802
+Email:		agujara1@binghamton.edu
+
+In mongoDB program creates 3 collections under sensors database 
+1. SensorType
+2. Sensor
+3. SensorData
