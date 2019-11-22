@@ -30,17 +30,17 @@ function setupRoutes(app) {
   app.use(bodyParser.json());
   app.get('/sensors', sensorFind(app));
   app.get('/sensors/:id', sensorFindId(app));
-  
+
   app.get('/sensor-types', sensorType(app));
   app.get('/sensor-types/:id', sensorTypeId(app));
 
   app.get('/sensor-data/:id/:timestamp', sensorDataIdTimestamp(app));
   app.get('/sensor-data/:id', sensorDataId(app));
-  
+
   app.post('/sensor-types', createSensorType(app))
   app.post('/sensors', createSensor(app))
   app.post('/sensor-data/:id', createSensorData(app))
-  
+
 }
 //@TODO routing function, handlers, utility functions
 
@@ -97,18 +97,18 @@ function createSensorType(app) {
 
 function sensorDataIdTimestamp(app){
   return errorWrap(async function(req, res) {
-    try 
+    try
     {
       const q = req.params.timestamp
       const status = req.query.statuses
       const id = req.params.id;
       const result = await app.locals.sensors.findSensorData({sensorId: id, timestamp:q, statuses:status});
-      
+
       result.data = result.data.filter(function(val){
         return Number(val.timestamp) === Number(q);
       });
 
-      if (result.data.length === 0) 
+      if (result.data.length === 0)
       {
         throw {
           isDomain: true,
@@ -116,7 +116,7 @@ function sensorDataIdTimestamp(app){
           message: `no data for timestamp ${Number(q)}`,
         };
       }
-      else 
+      else
       {
         result.self = requestUrl(req);
 	      res.json(result);
@@ -132,14 +132,14 @@ function sensorDataIdTimestamp(app){
 
 function sensorDataId(app){
   return errorWrap(async function(req, res) {
-    try 
+    try
     {
       const q = req.query.timestamp
       const status = req.query.statuses
       const id = req.params.id;
       const result = await app.locals.sensors.findSensorData({sensorId: id, timestamp:q, statuses:status});
       result.self = requestUrl(req);
-      if (result.length === 0) 
+      if (result.length === 0)
       {
         throw {
           isDomain: true,
@@ -147,7 +147,7 @@ function sensorDataId(app){
           message: `user ${id} not found`,
         };
       }
-      else 
+      else
       {
 	      res.json(result);
       }
@@ -167,7 +167,7 @@ function sensorFind(app){
       const result = await app.locals.sensors.findSensors(q);
       if(result.nextIndex > 0){
         if(req.query._index){
-          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)  
+          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)
         }
         else{
           result.next = requestUrl(req)+"?_index="+result.nextIndex
@@ -175,7 +175,7 @@ function sensorFind(app){
       }
       if(result.previousIndex > 0){
         if(req.query._index){
-          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)  
+          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)
         }
         else{
           result.prev = requestUrl(req)+"?_index="+result.previousIndex
@@ -194,14 +194,14 @@ function sensorFind(app){
 
 function sensorFindId(app){
   return errorWrap(async function(req, res) {
-    try 
+    try
     {
       const id = req.params.id;
       const result = await app.locals.sensors.findSensors({ id: id });
       result.self = requestUrl(req);
       if(result.nextIndex > 0){
         if(req.query._index){
-          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)  
+          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)
         }
         else{
           result.next = requestUrl(req)+"?_index="+result.nextIndex
@@ -209,13 +209,13 @@ function sensorFindId(app){
       }
       if(result.previousIndex > 0){
         if(req.query._index){
-          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)  
+          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)
         }
         else{
           result.prev = requestUrl(req)+"?_index="+result.previousIndex
         }
       }
-      if (result.length === 0) 
+      if (result.length === 0)
       {
         throw {
           isDomain: true,
@@ -223,9 +223,9 @@ function sensorFindId(app){
           message: `user ${id} not found`,
         };
       }
-      else 
+      else
       {
-        
+
 	      res.json(result);
       }
     }
@@ -245,7 +245,7 @@ function sensorType(app){
       result.self = requestUrl(req);
       if(result.nextIndex > 0){
         if(req.query._index){
-          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)  
+          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)
         }
         else{
           result.next = requestUrl(req)+"?_index="+result.nextIndex
@@ -253,7 +253,7 @@ function sensorType(app){
       }
       if(result.previousIndex > 0){
         if(req.query._index){
-          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)  
+          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)
         }
         else{
           result.prev = requestUrl(req)+"?_index="+result.previousIndex
@@ -271,14 +271,14 @@ function sensorType(app){
 
 function sensorTypeId(app){
   return errorWrap(async function(req, res) {
-    try 
+    try
     {
       const id = req.params.id;
       const result = await app.locals.sensors.findSensorTypes({ id: id });
       result.self = requestUrl(req);
       if(result.nextIndex > 0){
         if(req.query._index){
-          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)  
+          result.next = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.nextIndex)
         }
         else{
           result.next = requestUrl(req)+"?_index="+result.nextIndex
@@ -286,13 +286,13 @@ function sensorTypeId(app){
       }
       if(result.previousIndex > 0){
         if(req.query._index){
-          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)  
+          result.prev = requestUrl(req).replace(/[_index=]+[0-9]+/,"_index="+result.previousIndex)
         }
         else{
           result.prev = requestUrl(req)+"?_index="+result.previousIndex
         }
       }
-      if (result.length === 0) 
+      if (result.length === 0)
       {
         throw {
           isDomain: true,
@@ -300,9 +300,8 @@ function sensorTypeId(app){
           message: `user ${id} not found`,
         };
       }
-      else 
+      else
       {
-        
 	      res.json(result);
       }
     }
@@ -317,7 +316,7 @@ function sensorTypeId(app){
 
 
 
-/** Set up error handling for handler by wrapping it in a 
+/** Set up error handling for handler by wrapping it in a
  *  try-catch with chaining to error handler on error.
  */
 function errorWrap(handler) {
@@ -344,15 +343,15 @@ const ERROR_MAP = {
  */
 function mapError(err,codeError) {
   return err.isDomain
-    ? { 
+    ? {
 	code: codeError,
 	message: err.message
       }
-    : { 
+    : {
 	code: codeError,
 	message: err.toString().replace("NOT_FOUND:","")
       };
-} 
+}
 
 /****************************** Utilities ******************************/
 
@@ -361,4 +360,3 @@ function requestUrl(req) {
   const port = req.app.locals.port;
   return `${req.protocol}://${req.hostname}:${port}${req.originalUrl}`;
 }
-  
