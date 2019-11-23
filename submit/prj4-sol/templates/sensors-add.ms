@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Create/ Update Sensor Types</title>
-    <h1 class="tst-sensor-types-add-page"> Create/ Update Sensor Types </h1>
+    <title>Create/ Update Sensors</title>
+    <h1 class="tst-sensors-add-page"> Create/ Update Sensors </h1>
     <link rel="stylesheet" href="/css/style.css">
   </head>
   <body>
@@ -18,8 +18,6 @@
   {{{form_2}}}
   {{{form_3}}}
   {{{form_4}}}
-  {{{form_6}}}
-  {{{form_5}}}
   <input name="submit" type="submit" value="add" >
   </form>
 </div>
